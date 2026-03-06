@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SITM — Sistema Integrado de Transporte Masivo</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="app">
+
+  <!-- ══ SIDEBAR ══ -->
+  <aside class="sidebar">
+    <div class="logo">
+      <div class="logo-badge">SITM</div>
+      <h1>Transporte<br>Masivo Urbano</h1>
+      <p>Panel de Control Central</p>
+    </div>
+    <nav class="nav">
+      <div class="nav-section">Principal</div>
+      <div class="nav-item active" onclick="showPage('dashboard', this)">
+        <span class="icon">◈</span> Dashboard
+      </div>
+      <div class="nav-item" onclick="showPage('rutas', this)">
+        <span class="icon">⬡</span> Rutas y Buses
+      </div>
+      <div class="nav-section">Monitoreo</div>
+      <div class="nav-item" onclick="showPage('sensores', this)">
+        <span class="icon">◎</span> Sensores Kinect
+      </div>
+      <div class="nav-item" onclick="showPage('alertas', this)">
+        <span class="icon">⚠</span> Alertas
+        <span class="nav-badge" id="alert-count">3</span>
+      </div>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="status-dot">
+        <div class="dot"></div>
+        <span>Sistema en línea</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ══ MAIN ══ -->
+  <main class="main">
+
+    <!-- TOPBAR -->
+    <div class="topbar">
+      <span class="topbar-title" id="page-title">Dashboard en Tiempo Real</span>
+      <span class="topbar-time" id="live-clock"></span>
+      <div class="topbar-alert" onclick="showPage('alertas', null)">
+        ⚠ 3 alertas activas
+      </div>
+    </div>
+
+    <!-- ══ PAGE: DASHBOARD ══ -->
+    <div class="page active" id="page-dashboard">
+      <div class="stats-grid">
+        <div class="stat-card" style="--card-accent: var(--accent2)">
+          <div class="stat-label">Pasajeros Hoy</div>
+          <div class="stat-value" id="stat-total">0</div>
+          <div class="stat-sub">Acumulado del día</div>
+          <div class="stat-delta delta-up">▲ 12%</div>
+        </div>
+        <div class="stat-card" style="--card-accent: var(--accent)">
+          <div class="stat-label">En Tránsito Ahora</div>
+          <div class="stat-value" id="stat-onboard">0</div>
+          <div class="stat-sub">En buses activos</div>
+          <div class="stat-delta delta-up">▲ 4</div>
+        </div>
+        <div class="stat-card" style="--card-accent: var(--danger)">
+          <div class="stat-label">Evasiones Detectadas</div>
+          <div class="stat-value num-down" id="stat-evasion">0</div>
+          <div class="stat-sub">Pérdida estimada</div>
+          <div class="stat-delta delta-down">▼ COP $0</div>
+        </div>
+        <div class="stat-card" style="--card-accent: var(--warn)">
+          <div class="stat-label">Buses Activos</div>
+          <div class="stat-value" id="stat-buses">7</div>
+          <div class="stat-sub">De 8 en flota total</div>
+          <div class="stat-delta delta-up">↑ Normal</div>
+        </div>
+      </div>
+
+      <div class="two-col">
+        <div class="panel">
+          <div class="panel-header">
+            <span class="panel-title">Flujo de Pasajeros — Hoy</span>
+            <span class="panel-badge badge-live">● EN VIVO</span>
+          </div>
+          <div class="panel-body">
+            <div class="chart-bars" id="hourly-chart"></div>
+            <div class="chart-legend">
+              <div class="legend-item"><div class="legend-dot" style="background:var(--accent2)"></div>Entradas</div>
+              <div class="legend-item"><div class="legend-dot" style="background:var(--danger)"></div>Evasiones</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header">
+            <span class="panel-title">Eventos Recientes</span>
+            <span class="panel-badge badge-live">● EN VIVO</span>
+          </div>
+          <div class="panel-body" style="max-height:220px; overflow-y:auto;">
+            <div class="live-feed" id="live-feed"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header">
+          <span class="panel-title">Estado de Flota — Tiempo Real</span>
+          <span class="panel-badge badge-info">8 UNIDADES</span>
+        </div>
+        <div class="panel-body" style="padding: 0;">
+          <table class="fleet-table">
+            <thead>
+              <tr>
+                <th>Bus ID</th>
+                <th>Ruta</th>
+                <th>Estado</th>
+                <th>Pasajeros</th>
+                <th>Ocupación</th>
+                <th>Evasiones</th>
+                <th>Última Parada</th>
+              </tr>
+            </thead>
+            <tbody id="fleet-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ PAGE: RUTAS ══ -->
+    <div class="page" id="page-rutas">
+      <div class="section-header">
+        <div>
+          <div class="section-title">Gestión de Rutas y Buses</div>
+          <div class="section-sub">Administra la flota y configuración de rutas</div>
+        </div>
+        <button class="btn btn-primary" onclick="openModal('modal-ruta')">+ Nueva Ruta</button>
+      </div>
+      <div id="rutas-list"></div>
+    </div>
+
+    <!-- ══ PAGE: SENSORES ══ -->
+    <div class="page" id="page-sensores">
+      <div class="section-header">
+        <div>
+          <div class="section-title">Sensores Kinect</div>
+          <div class="section-sub">Estado y telemetría de sensores instalados</div>
+        </div>
+        <button class="btn btn-primary" onclick="openModal('modal-sensor')">+ Registrar Sensor</button>
+      </div>
+      <div class="sensor-grid" id="sensor-grid"></div>
+      <div style="margin-top: 24px;">
+        <div class="panel">
+          <div class="panel-header">
+            <span class="panel-title">Log de Detecciones — Sensores</span>
+            <span class="panel-badge badge-live">● ACTIVO</span>
+          </div>
+          <div class="panel-body" style="max-height:300px; overflow-y:auto;">
+            <div class="live-feed" id="sensor-feed"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ PAGE: ALERTAS ══ -->
+    <div class="page" id="page-alertas">
+      <div class="section-header">
+        <div>
+          <div class="section-title">Centro de Alertas</div>
+          <div class="section-sub">Eventos críticos que requieren atención</div>
+        </div>
+        <button class="btn btn-ghost" onclick="clearAlerts()">Limpiar resueltas</button>
+      </div>
+      <div id="alerts-list"></div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ══ MODAL: Nueva Ruta ══ -->
+<div class="modal-overlay" id="modal-ruta">
+  <div class="modal">
+    <div class="modal-title">➕ Nueva Ruta</div>
+    <div class="form-group">
+      <label class="form-label">Número / Código de Ruta</label>
+      <input class="form-input" id="new-route-num" placeholder="Ej: R-05">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Nombre de la Ruta</label>
+      <input class="form-input" id="new-route-name" placeholder="Ej: Centro — Cabecera">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Paradas</label>
+        <input class="form-input" id="new-route-stops" type="number" placeholder="8">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Buses Asignados</label>
+        <input class="form-input" id="new-route-buses" type="number" placeholder="2">
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-ghost" onclick="closeModal('modal-ruta')">Cancelar</button>
+      <button class="btn btn-primary" onclick="addRoute()">Crear Ruta</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL: Nuevo Sensor ══ -->
+<div class="modal-overlay" id="modal-sensor">
+  <div class="modal">
+    <div class="modal-title">📡 Registrar Sensor Kinect</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">ID del Sensor</label>
+        <input class="form-input" id="new-sensor-id" placeholder="Ej: KNX-09">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Bus Asignado</label>
+        <select class="form-select" id="new-sensor-bus">
+          <option>BUS-001</option>
+          <option>BUS-002</option>
+          <option>BUS-003</option>
+          <option>BUS-004</option>
+          <option>BUS-005</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Posición de Instalación</label>
+      <select class="form-select" id="new-sensor-pos">
+        <option>Puerta delantera</option>
+        <option>Puerta trasera</option>
+        <option>Puerta central</option>
+      </select>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-ghost" onclick="closeModal('modal-sensor')">Cancelar</button>
+      <button class="btn btn-primary" onclick="addSensor()">Registrar</button>
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
