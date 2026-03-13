@@ -1,0 +1,29 @@
+# Env
+.env
+.env.*
+!.env.example
+
+# Node
+node_modules/
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Next
+.next/
+out/
+
+# Python
+venv/
+__pycache__/
+*.pyc
+
+# OS / Editor
+.DS_Store
+Thumbs.db
+.vscode/
+
+# Prisma
+prisma/dev.db
+prisma/dev.db-journal
